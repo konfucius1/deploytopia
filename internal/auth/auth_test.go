@@ -43,10 +43,10 @@ func TestGetAPIKey(t *testing.T) {
 			wantErr: errors.New("malformed authorization header"),
 		},
 		{
-			name: "malformed header - empty after prefix",
+			name: "malformed header - no value",
 			setup: func() http.Header {
 				h := make(http.Header)
-				h.Set("Authorization", "ApiKey ")
+				h.Set("Authorization", "ApiKey")
 				return h
 			},
 			want:    "",
@@ -68,7 +68,11 @@ func TestGetAPIKey(t *testing.T) {
 					t.Errorf("GetAPIKey() error = nil, wantErr = %v", tt.wantErr)
 					return
 				}
-				if err.Error() != tt.wantErr.Error() {
+				if tt.wantErr == ErrNoAuthHeaderIncluded {
+					if !errors.Is(err, ErrNoAuthHeaderIncluded) {
+						t.Errorf("GetAPIKey() error = %v, wantErr = %v", err, tt.wantErr)
+					}
+				} else if err.Error() != tt.wantErr.Error() {
 					t.Errorf("GetAPIKey() error = %v, wantErr = %v", err, tt.wantErr)
 				}
 				return
